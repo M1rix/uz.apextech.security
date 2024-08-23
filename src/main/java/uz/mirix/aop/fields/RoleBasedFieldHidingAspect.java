@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class RoleBasedFieldHidingAspect {
 
-    @Around("execution(@org.springframework.web.bind.annotation.GetMapping * *(..)) && @within(uz.mirix.annotations.RoleVisibilityController)")
+    @Around("@within(uz.mirix.annotations.RoleVisibilityController) && @annotation(org.springframework.web.bind.annotation.GetMapping)")
     public Object hideFieldsBasedOnRole(ProceedingJoinPoint joinPoint) throws Throwable {
          Object result = joinPoint.proceed();
         System.out.println("aspect is working: " + result.toString());
