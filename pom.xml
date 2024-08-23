@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>uz.apextech</groupId>
+    <groupId>uz.mirix</groupId>
     <artifactId>security</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -18,7 +18,7 @@
     <distributionManagement>
         <repository>
             <id>github</id>
-            <url>https://maven.pkg.github.com/USERNAME/REPOSITORY</url>
+            <url>https://maven.pkg.github.com/m1rix/uz.mirix.security</url>
         </repository>
     </distributionManagement>
 
