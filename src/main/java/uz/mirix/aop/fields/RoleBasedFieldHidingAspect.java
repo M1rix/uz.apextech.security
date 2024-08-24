@@ -22,21 +22,12 @@ import java.util.stream.Collectors;
 @Component
 public class RoleBasedFieldHidingAspect {
 
-    private final Logger log = LoggerFactory.getLogger(RoleBasedFieldHidingAspect.class);
-
-    public RoleBasedFieldHidingAspect() {
-        log.info("aspect is working: ");
-        log.info("aspect is working: ");
-        log.info("aspect is working: ");
-    }
-
     @Around(
             "@within(uz.mirix.annotations.RoleVisibilityController) && " +
             "@annotation(org.springframework.web.bind.annotation.GetMapping)"
     )
     public Object hideFieldsBasedOnRole(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed();
-        log.info("aspect is working: " + result.toString());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
