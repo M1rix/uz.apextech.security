@@ -1,0 +1,4 @@
+uz\mirix\annotations\RoleVisibility.class
+uz\mirix\aop\fields\RoleBasedFieldHidingAspect.class
+uz\mirix\annotations\VisibleForRoles.class
+uz\mirix\annotations\RoleVisibilityController.class

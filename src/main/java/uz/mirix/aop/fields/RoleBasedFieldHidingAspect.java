@@ -3,6 +3,8 @@ package uz.mirix.aop.fields;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,10 +22,21 @@ import java.util.stream.Collectors;
 @Component
 public class RoleBasedFieldHidingAspect {
 
-    @Around("@within(uz.mirix.annotations.RoleVisibilityController) && @annotation(org.springframework.web.bind.annotation.GetMapping)")
+    private final Logger log = LoggerFactory.getLogger(RoleBasedFieldHidingAspect.class);
+
+    public RoleBasedFieldHidingAspect() {
+        log.info("aspect is working: ");
+        log.info("aspect is working: ");
+        log.info("aspect is working: ");
+    }
+
+    @Around(
+            "@within(uz.mirix.annotations.RoleVisibilityController) && " +
+            "@annotation(org.springframework.web.bind.annotation.GetMapping)"
+    )
     public Object hideFieldsBasedOnRole(ProceedingJoinPoint joinPoint) throws Throwable {
-         Object result = joinPoint.proceed();
-        System.out.println("aspect is working: " + result.toString());
+        Object result = joinPoint.proceed();
+        log.info("aspect is working: " + result.toString());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
