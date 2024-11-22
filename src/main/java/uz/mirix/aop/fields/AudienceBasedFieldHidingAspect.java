@@ -97,7 +97,7 @@ public class AudienceBasedFieldHidingAspect {
             }
         }
 
-        return objectMapper.convertValue(objectNode, object.getClass());
+        return objectNode;
     }
 }
 

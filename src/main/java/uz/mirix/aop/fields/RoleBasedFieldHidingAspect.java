@@ -108,7 +108,7 @@ public class RoleBasedFieldHidingAspect {
             }
         }
 
-        return objectMapper.convertValue(objectNode, object.getClass());
+        return objectNode;
     }
 }
 
