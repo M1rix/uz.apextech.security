@@ -18,6 +18,7 @@ import uz.mirix.annotations.audience.AudienceFilterObject;
 import java.lang.reflect.Field;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Aspect
@@ -91,7 +92,7 @@ public class AudienceBasedFieldHidingAspect {
             if (field.isAnnotationPresent(AudienceFilter.class)) {
                 AudienceFilter audienceFilter = field.getAnnotation(AudienceFilter.class);
                 if (hasAudience && audienceFilter.hideIfExists()) {
-                    objectNode.remove(field.getName());
+                    objectNode = objectNode.remove(List.of(field.getName()));
                 }
             }
         }

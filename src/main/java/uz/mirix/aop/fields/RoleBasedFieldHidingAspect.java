@@ -18,6 +18,7 @@ import uz.mirix.annotations.role.VisibleForRoles;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -102,16 +103,7 @@ public class RoleBasedFieldHidingAspect {
                 }
 
                 if (!isVisible) {
-                    objectNode.remove(field.getName());
-                } else if (field.getType().isAnnotationPresent(RoleVisibility.class)) {
-                    try {
-                        field.setAccessible(true);
-                        Object nestedObject = field.get(object);
-                        Object processedNestedObject = processObject(nestedObject, userRoles);
-                        objectNode.set(field.getName(), objectMapper.valueToTree(processedNestedObject));
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error processing nested object", e);
-                    }
+                    objectNode = objectNode.remove(List.of(field.getName()));
                 }
             }
         }
