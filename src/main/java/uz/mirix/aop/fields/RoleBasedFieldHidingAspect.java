@@ -71,7 +71,7 @@ public class RoleBasedFieldHidingAspect {
             return null;
         }
 
-        if (object instanceof String || object.getClass().isPrimitive() || !object.getClass().isAnnotationPresent(RoleVisibility.class)) {
+        if (!(object instanceof Collection) && !object.getClass().isAnnotationPresent(RoleVisibility.class)) {
             return object;
         }
 

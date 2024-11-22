@@ -69,7 +69,7 @@ public class AudienceBasedFieldHidingAspect {
             return null;
         }
 
-        if (object instanceof String || object.getClass().isPrimitive() || !object.getClass().isAnnotationPresent(AudienceFilterObject.class)) {
+        if (!(object instanceof Collection) && !object.getClass().isAnnotationPresent(AudienceFilterObject.class)) {
             return object;
         }
 
