@@ -10,23 +10,22 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import uz.mirix.annotations.role.RoleVisibility;
-import uz.mirix.annotations.role.VisibleForRoles;
+import uz.mirix.annotations.audience.AudienceFilter;
+import uz.mirix.annotations.audience.AudienceFilterObject;
 
 import java.lang.reflect.Field;
+import java.util.Base64;
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Aspect
 @Component
-public class RoleBasedFieldHidingAspect {
+public class AudienceBasedFieldHidingAspect {
     private final ObjectMapper objectMapper;
 
-    public RoleBasedFieldHidingAspect(ObjectMapper objectMapper) {
+    public AudienceBasedFieldHidingAspect(ObjectMapper objectMapper) {
         this.objectMapper = configureObjectMapper(objectMapper);
     }
 
@@ -39,7 +38,7 @@ public class RoleBasedFieldHidingAspect {
     }
 
     @Around(
-            "@within(uz.mirix.annotations.role.RoleVisibilityController) && " +
+            "@within(uz.mirix.annotations.audience.AudienceFilterController) && " +
             "@annotation(org.springframework.web.bind.annotation.GetMapping)"
     )
     public Object hideFieldsBasedOnRole(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -49,29 +48,28 @@ public class RoleBasedFieldHidingAspect {
         if (authentication == null) {
             return result;
         }
-
-        Set<String> userRoles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
+        String payload  = authentication.getCredentials().toString().split("\\.")[1];
+        String decoded = new String(Base64.getDecoder().decode(payload));
+        boolean hasAudience = decoded.contains("aud");
 
         if (result instanceof ResponseEntity) {
-            return processedResponseEntity((ResponseEntity<?>) result, userRoles);
+            return processedResponseEntity((ResponseEntity<?>) result, hasAudience);
         }
 
-        return processObject(result, userRoles);
+        return processObject(result, hasAudience);
     }
 
-    private ResponseEntity<Object> processedResponseEntity(ResponseEntity<?> result, Set<String> userRoles) throws IllegalAccessException {
-        Object processedObject = processObject(result.getBody(), userRoles);
+    private ResponseEntity<Object> processedResponseEntity(ResponseEntity<?> result, boolean hasAudience) throws IllegalAccessException {
+        Object processedObject = processObject(result.getBody(), hasAudience);
         return new ResponseEntity<>(processedObject, result.getHeaders(), result.getStatusCode());
     }
 
-    private Object processObject(Object object, Set<String> userRoles) throws IllegalAccessException {
+    private Object processObject(Object object, boolean hasAudience) throws IllegalAccessException {
         if (object == null) {
             return null;
         }
 
-        if (object instanceof String || object.getClass().isPrimitive() || !object.getClass().isAnnotationPresent(RoleVisibility.class)) {
+        if (object instanceof String || object.getClass().isPrimitive() || !object.getClass().isAnnotationPresent(AudienceFilterObject.class)) {
             return object;
         }
 
@@ -79,7 +77,7 @@ public class RoleBasedFieldHidingAspect {
             return ((Collection<?>) object).stream()
                     .map(item -> {
                         try {
-                            return processObject(item, userRoles);
+                            return processObject(item, hasAudience);
                         } catch (IllegalAccessException e) {
                             throw new RuntimeException("Error processing collection item", e);
                         }
@@ -90,28 +88,10 @@ public class RoleBasedFieldHidingAspect {
         ObjectNode objectNode = objectMapper.valueToTree(object);
 
         for (Field field : object.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(VisibleForRoles.class)) {
-                boolean isVisible = false;
-                VisibleForRoles visibleForRoles = field.getAnnotation(VisibleForRoles.class);
-
-                for (String role : visibleForRoles.roles()) {
-                    if (userRoles.contains(role)) {
-                        isVisible = true;
-                        break;
-                    }
-                }
-
-                if (!isVisible) {
+            if (field.isAnnotationPresent(AudienceFilter.class)) {
+                AudienceFilter audienceFilter = field.getAnnotation(AudienceFilter.class);
+                if (hasAudience && audienceFilter.hideIfExists()) {
                     objectNode.remove(field.getName());
-                } else if (field.getType().isAnnotationPresent(RoleVisibility.class)) {
-                    try {
-                        field.setAccessible(true);
-                        Object nestedObject = field.get(object);
-                        Object processedNestedObject = processObject(nestedObject, userRoles);
-                        objectNode.set(field.getName(), objectMapper.valueToTree(processedNestedObject));
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error processing nested object", e);
-                    }
                 }
             }
         }
